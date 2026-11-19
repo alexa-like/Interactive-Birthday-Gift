@@ -37,7 +37,7 @@ gsap.registerPlugin({
 const $ = (id) => document.getElementById(id);
 
 const canvas = $('tree');
-const ctx    = canvas.getContext('2d');
+const ctx    = canvas?.getContext?.('2d') || null;
 const wishEl = $('wish');
 
 const hero       = $('hero');
@@ -67,6 +67,7 @@ const barBot  = $('barBot');
 const uline   = $('uline').querySelector('.uline__path');
 const bloom   = $('bloom');
 const replay  = $('replay');
+const grain   = document.querySelector('.grade__grain');
 
 const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 const isRecord     = new URLSearchParams(location.search).has('record');
@@ -510,6 +511,7 @@ function treeFrame(now){
 }
 
 function treeStart(){
+  if (!ctx){ showWish(true); armReplay(); window.bdayDone = true; return; }
   treeStartT = 0; treeLastT = 0; lastPetal = 0; replayArmed = false; window.bdayDone = false;
   cue('grow');
   buildScene();
@@ -517,10 +519,11 @@ function treeStart(){
 }
 function treeStop(){
   if (treeRAF){ cancelAnimationFrame(treeRAF); treeRAF = 0; }
-  ctx.clearRect(0, 0, W, H);
+  if (ctx) ctx.clearRect(0, 0, W, H);
 }
 
 function drawFinal(){
+  if (!ctx) return;
   buildScene();
   drawBackground(); drawGodRays(0, 1); drawGlow(T.done); drawBokeh(0, 0); drawFloaters(99, 0, false);
   drawBranches(99); drawHearts(99);
@@ -798,10 +801,12 @@ function buildFilm(m){
 
 /* --- draw / release interaction -------------------------------------------- */
 let played = false, drawing = false, startPX = 0, startPY = 0, startDraw = 0;
+let autoFirePending = false;
 
 function fire(){
   if (played) return;
   played = true;
+  autoFirePending = false;
   drawing = false;
   stopBeat();
   cue('release'); cue('whoosh');
@@ -815,7 +820,8 @@ function springBack(){
 }
 
 function autoFire(){
-  if (played) return;
+  if (played || autoFirePending) return;
+  autoFirePending = true;
   recT0 = performance.now(); cue('draw');       // t=0 of the soundtrack
   gsap.to({ d: curDraw }, {
     d: maxDraw * 0.94, duration: 0.62, ease: 'power2.inOut',
@@ -844,10 +850,14 @@ function endDraw(){
   if (curDraw > maxDraw * 0.26) fire(); else springBack();
 }
 archery.addEventListener('pointerup', endDraw);
-archery.addEventListener('pointercancel', endDraw);
+archery.addEventListener('pointercancel', () => {
+  if (!drawing) return;
+  drawing = false;
+  springBack();
+});
 archery.addEventListener('keydown', (e) => {
   if (played) return;
-  if (e.key === 'Enter' || e.key === ' '){ e.preventDefault(); autoFire(); }
+  if (e.key === 'Enter' || e.key === ' '){ e.preventDefault(); if (!e.repeat) autoFire(); }
 });
 
 /* boot Act 1: reveal the target + bow + hint, then start the beat */
@@ -878,6 +888,7 @@ function armReplay(){
 function resetAll(){
   treeStop();
   showWish(false);
+  autoFirePending = false;
   window.bdayDone = false; replayArmed = false;
   replay.classList.remove('is-shown'); replay.hidden = true;
   if (filmTL){ filmTL.pause(0); }
@@ -892,19 +903,21 @@ function resetAll(){
    SIZING + BOOT
    ============================================================ */
 function resize(){
+  if (!canvas) return;
   dpr = Math.min(window.devicePixelRatio || 1, 2);
   W = canvas.clientWidth; H = canvas.clientHeight;
   canvas.width = Math.round(W * dpr); canvas.height = Math.round(H * dpr);
+  if (!ctx) return;
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   buildSprites();
   buildScene();
   if (reduceMotion){ drawFinal(); return; }
-  if (played && filmTL){
+  if (played && filmTL && filmTL.isActive()){
     const at = filmTL.time(); const active = filmTL.isActive();
     filmTL = buildFilm(shotGeom());
     filmTL.pause(at);
     if (active) filmTL.play(at);
-  } else {
+  } else if (!played) {
     refreshRig(); setDraw(0);
   }
 }
@@ -913,8 +926,25 @@ window.addEventListener('resize', () => { if (resizeRAF) return; resizeRAF = req
 
 resize();
 
-if (reduceMotion){
+if (grain){
+  const grainURL = new URL('./textures/grain.png', document.baseURI);
+  grain.style.backgroundImage = `url("${grainURL.href}")`;
+  grain.style.backgroundRepeat = 'repeat';
+}
+
+if (!ctx){
+  canvas.hidden = true;
+  showWish(true);
+  replay.hidden = false;
+  replay.classList.add('is-shown');
+  replay.addEventListener('click', () => {
+    showWish(true);
+  });
+} else if (reduceMotion){
   drawFinal();
+  replay.hidden = false;
+  replay.classList.add('is-shown');
+  replay.addEventListener('click', () => drawFinal());
 } else {
   buildMotes();
   document.fonts && document.fonts.ready.then(() => { refreshRig(); setDraw(0); });

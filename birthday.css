@@ -439,6 +439,29 @@ body{
 .replay:hover{ background:rgba(255,252,248,.92); }
 .replay svg{ opacity:.8; }
 
+@media (prefers-reduced-motion: reduce){
+  .wingL, .wingR,
+  .wish.is-in .wish__hero,
+  .wish.is-in .wish__heroWrap::before,
+  .wish.is-in .wish__heroWrap::after{
+    animation:none !important;
+  }
+  .wish.is-in .wish__hero{
+    clip-path:inset(0 -10% -28% -10%);
+  }
+  .wish__eyebrow, .wish__rule, .wish__sub,
+  .wish__heroWrap::before, .wish__heroWrap::after{
+    transition:none !important;
+  }
+  .wish.is-in .wish__eyebrow,
+  .wish.is-in .wish__sub,
+  .wish.is-in .wish__rule,
+  .wish.is-in .wish__heroWrap::before,
+  .wish.is-in .wish__heroWrap::after{
+    opacity:1;
+  }
+}
+
 /* ============================================================
    THE LENS — grain + vignette over every act
    ============================================================ */
@@ -450,7 +473,6 @@ body{
 }
 .grade__grain{
   position:absolute; inset:0;
-  background:url('/textures/grain.png') repeat;
   background-size:300px; opacity:.05; mix-blend-mode:overlay;
 }
 
