@@ -257,6 +257,7 @@ body{
   display:flex; flex-direction:column; justify-content:center; align-items:center;
   gap:clamp(4px,1.2vh,12px);
   padding:0 6vw; text-align:center;
+  z-index:4;
   will-change:transform;
 }
 .kEyebrow{
@@ -267,6 +268,7 @@ body{
   color:#ffd7c8;
   opacity:0; transform:translateY(10px);
   margin-bottom:clamp(2px,1vh,10px);
+  text-shadow:0 2px 12px rgba(82,7,34,.38);
 }
 
 .headline{ font-family:"Fraunces", Georgia, serif; line-height:.92; }
@@ -281,7 +283,7 @@ body{
 .hl__word{
   display:inline-block;
   font-weight:900;
-  font-size:clamp(52px, 15vw, 168px);
+  font-size:clamp(52px, 13vw, 168px);
   letter-spacing:-.02em;
   color:#fff6f1;
   text-shadow:0 6px 34px rgba(60,4,24,.34), 0 2px 3px rgba(90,8,36,.42);
@@ -333,6 +335,7 @@ body{
   position:absolute;
   left:5.5%; bottom:10%;
   max-width:46%;
+  padding-top:.8em;
   z-index:6;
   pointer-events:none;
   color:var(--ink);
@@ -369,7 +372,7 @@ body{
 }
 .wish__hero{
   font-family:"Great Vibes", cursive; font-weight:400;
-  font-size:clamp(40px, 9.6vw, 86px);
+  font-size:clamp(40px, 8.6vw, 86px);
   line-height:.98; margin:-.02em 0 .06em;
   /* one consistent rose, top-lit — every letter reads the same (no per-glyph
      colour shift, which is what made the old rose→gold version look messy).
@@ -445,6 +448,21 @@ body{
   .wish.is-in .wish__heroWrap::before,
   .wish.is-in .wish__heroWrap::after{
     animation:none !important;
+  }
+
+  @media (min-width: 900px) and (min-height: 650px){
+    .wish{
+      bottom:11%;
+    }
+    .wish__eyebrow{
+      margin-bottom:.18em;
+    }
+    .wish__hero{
+      margin-top:.04em;
+    }
+    .wish__rule{
+      margin-top:.2em;
+    }
   }
   .wish.is-in .wish__hero{
     clip-path:inset(0 -10% -28% -10%);
